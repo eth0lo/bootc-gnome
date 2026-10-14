@@ -10,7 +10,7 @@ jobs:
   build-iso:
     runs-on: ubuntu-24.04
     permissions:
-      contents: write
+      contents: read
       packages: read
     steps:
       - name: Check out repository
@@ -66,14 +66,3 @@ jobs:
             ${{ steps.iso.outputs.path }}.sha256
           if-no-files-found: error
           retention-days: 30
-
-      - name: Publish ISO as a GitHub Release asset
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          tag="iso-${GITHUB_RUN_NUMBER}"
-          gh release create "$tag" \
-            "${{ steps.iso.outputs.path }}" \
-            "${{ steps.iso.outputs.path }}.sha256" \
-            --title "bootc-gnome installer $(date -u +%Y-%m-%d)" \
-            --notes "Installer ISO built from ghcr.io/${{ github.repository_owner }}/bootc-gnome:stable."

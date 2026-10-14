@@ -57,7 +57,7 @@ sudo bootc upgrade
 
 ## Build an installer ISO
 
-The `Build installer ISO` workflow is manual: use **Actions → Build installer ISO → Run workflow**. It pulls the latest `stable` image, builds an Anaconda installer ISO, uploads it as a 30-day Actions artifact, and attaches the ISO and SHA-256 checksum to a GitHub Release.
+The `Build installer ISO` workflow is manual: use **Actions → Build installer ISO → Run workflow**. It pulls the latest `stable` image and uploads the Anaconda installer ISO and SHA-256 checksum as a 30-day Actions artifact. Download them from the completed workflow run's **Artifacts** section.
 
 For a local ISO build from the published image:
 
