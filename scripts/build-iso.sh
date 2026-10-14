@@ -6,8 +6,10 @@ mkdir -p output
 
 if [[ "$(id -u)" -eq 0 ]]; then
     container_engine=(podman)
+    output_owner="0:0"
 else
     container_engine=(sudo podman)
+    output_owner="$(id -u):$(id -g)"
 fi
 
 "${container_engine[@]}" pull "$image"
@@ -21,5 +23,9 @@ fi
     --type anaconda-iso \
     --rootfs btrfs \
     "$image"
+
+if [[ "$(id -u)" -ne 0 ]]; then
+    sudo chown -R "$output_owner" output
+fi
 
 printf 'ISO output: %s/output/bootiso/install.iso\n' "$PWD"

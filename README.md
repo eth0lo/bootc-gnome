@@ -41,7 +41,7 @@ Boot the generated `output/qcow2/disk.qcow2` in your preferred VM manager. For e
 
 ## Publish and update
 
-The `Build and publish bootc image` workflow runs daily at 06:17 UTC and on pushes to `main`. It publishes:
+The `Build and publish bootc image` workflow runs every five minutes (GitHub Actions' minimum scheduled interval) and on pushes to `main`. It publishes:
 
 - `ghcr.io/eth0lo/bootc-gnome:stable` — moving update channel
 - `ghcr.io/eth0lo/bootc-gnome:sha-<commit>` — immutable build reference

@@ -2,10 +2,14 @@ name: Build and publish bootc image
 
 on:
   schedule:
-    - cron: "17 6 * * *"
+    - cron: "*/5 * * * *"
   push:
     branches: [main]
   workflow_dispatch:
+
+concurrency:
+  group: publish-bootc-image
+  cancel-in-progress: false
 
 permissions:
   contents: read
