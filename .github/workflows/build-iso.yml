@@ -1,0 +1,73 @@
+name: Build installer ISO
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-iso:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+      packages: read
+    steps:
+      - name: Install Podman
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y podman
+
+      - name: Log in to GitHub Container Registry
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          printf '%s' "$GH_TOKEN" | sudo podman login ghcr.io \
+            --username "${GITHUB_ACTOR}" --password-stdin
+
+      - name: Pull latest published image
+        run: sudo podman pull ghcr.io/${{ github.repository_owner }}/bootc-gnome:stable
+
+      - name: Build installer ISO
+        run: |
+          mkdir -p output
+          sudo podman run \
+            --rm \
+            --privileged \
+            --security-opt label=type:unconfined_t \
+            -v "$PWD/output:/output" \
+            -v /var/lib/containers/storage:/var/lib/containers/storage \
+            quay.io/centos-bootc/bootc-image-builder:latest \
+            --type anaconda-iso \
+            --rootfs btrfs \
+            ghcr.io/${{ github.repository_owner }}/bootc-gnome:stable
+
+      - name: Name ISO and create checksum
+        id: iso
+        run: |
+          iso="output/bootiso/bootc-gnome-$(date -u +%Y%m%d)-${GITHUB_RUN_NUMBER}.iso"
+          mv output/bootiso/install.iso "$iso"
+          sha256sum "$iso" > "$iso.sha256"
+          echo "path=$iso" >> "$GITHUB_OUTPUT"
+          echo "name=$(basename "$iso")" >> "$GITHUB_OUTPUT"
+
+      - name: Upload ISO artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: bootc-gnome-installer-iso
+          path: |
+            ${{ steps.iso.outputs.path }}
+            ${{ steps.iso.outputs.path }}.sha256
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Publish ISO as a GitHub Release asset
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          tag="iso-${GITHUB_RUN_NUMBER}"
+          gh release create "$tag" \
+            "${{ steps.iso.outputs.path }}" \
+            "${{ steps.iso.outputs.path }}.sha256" \
+            --title "bootc-gnome installer $(date -u +%Y-%m-%d)" \
+            --notes "Installer ISO built from ghcr.io/${{ github.repository_owner }}/bootc-gnome:stable."
