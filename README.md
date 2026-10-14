@@ -57,15 +57,14 @@ sudo bootc upgrade
 
 ## Build an installer ISO
 
-The `Build installer ISO` workflow is manual: use **Actions → Build installer ISO → Run workflow**. It pulls the latest `stable` image, uploads the Anaconda installer ISO and SHA-256 checksum as a 30-day Actions artifact, and publishes them to GHCR as the `bootc-gnome-iso` package. The package appears in the repository's **Packages** sidebar and keeps a version tagged `iso-<date>-<run-number>`.
+The `Build installer ISO` workflow runs on the first of each month at 06:00 UTC and can also be started manually from **Actions → Build installer ISO → Run workflow**. It builds an installer from the latest `stable` image, uploads the ISO and SHA-256 checksum as a 30-day Actions artifact, and overwrites the same files in the public Internet Archive item.
 
-Download the package contents with [ORAS](https://oras.land/):
+The workflow uses the repository Actions secrets `IA_ACCESS_KEY_ID` and `IA_SECRET_ACCESS_KEY`, created from the account's Internet Archive S3 keys.
 
-```sh
-oras pull ghcr.io/eth0lo/bootc-gnome-iso:iso-<date>-<run-number>
-```
+- [Download the installer ISO](https://archive.org/download/bootc-gnome/bootc-gnome.iso)
+- [Download its SHA-256 checksum](https://archive.org/download/bootc-gnome/bootc-gnome.iso.sha256)
 
-The Actions artifact is also available from the completed workflow run's **Artifacts** section.
+The upload overwrites the previous ISO without retaining backup copies. The Actions artifact is also available from the completed workflow run's **Artifacts** section for 30 days.
 
 For a local ISO build from the published image:
 
