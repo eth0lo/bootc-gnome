@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-24.04
     permissions:
       contents: read
-      packages: read
+      packages: write
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -21,11 +21,17 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y podman
 
+      - name: Set up ORAS
+        uses: oras-project/setup-oras@v1
+
       - name: Log in to GitHub Container Registry
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           printf '%s' "$GH_TOKEN" | sudo podman login ghcr.io \
+            --username "${GITHUB_ACTOR}" --password-stdin
+
+          printf '%s' "$GH_TOKEN" | oras login ghcr.io \
             --username "${GITHUB_ACTOR}" --password-stdin
 
       - name: Pull latest published image
@@ -52,10 +58,12 @@ jobs:
         id: iso
         run: |
           iso="output/bootiso/bootc-gnome-$(date -u +%Y%m%d)-${GITHUB_RUN_NUMBER}.iso"
+          tag="iso-$(date -u +%Y%m%d)-${GITHUB_RUN_NUMBER}"
           mv output/bootiso/install.iso "$iso"
           sha256sum "$iso" > "$iso.sha256"
           echo "path=$iso" >> "$GITHUB_OUTPUT"
           echo "name=$(basename "$iso")" >> "$GITHUB_OUTPUT"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
 
       - name: Upload ISO artifact
         uses: actions/upload-artifact@v4
@@ -66,3 +74,16 @@ jobs:
             ${{ steps.iso.outputs.path }}.sha256
           if-no-files-found: error
           retention-days: 30
+
+      - name: Publish ISO as an OCI package
+        env:
+          ISO_PATH: ${{ steps.iso.outputs.path }}
+          ISO_TAG: ${{ steps.iso.outputs.tag }}
+        run: |
+          oras push \
+            "ghcr.io/${GITHUB_REPOSITORY_OWNER}/bootc-gnome-iso:${ISO_TAG}" \
+            --artifact-type application/vnd.bootc-gnome.installer.v1+iso \
+            --annotation "org.opencontainers.image.source=${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}" \
+            --annotation "org.opencontainers.image.description=bootc-gnome installer ISO" \
+            "${ISO_PATH}:application/x-iso9660-image" \
+            "${ISO_PATH}.sha256:text/plain"
