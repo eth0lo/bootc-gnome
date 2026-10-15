@@ -2,7 +2,7 @@ name: Build and publish bootc image
 
 on:
   schedule:
-    - cron: "*/5 * * * *"
+    - cron: "17 6 * * *"
   push:
     branches: [main]
   workflow_dispatch:

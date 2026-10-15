@@ -2,6 +2,8 @@
 
 A minimal Fedora bootc desktop with GNOME components installed individually. The image does **not** install Fedora's Workstation package group.
 
+**[Download the latest installer ISO](https://archive.org/download/bootc-gnome/bootc-gnome.iso)**
+
 ## Image contents
 
 The Containerfile explicitly installs GDM, GNOME Shell/session/settings, a terminal, a text editor, Files, Wi-Fi support, and user-directory defaults. Add packages to that list when you want additional desktop applications; there is no Workstation bundle that pulls them in implicitly.
@@ -41,7 +43,7 @@ Boot the generated `output/qcow2/disk.qcow2` in your preferred VM manager. For e
 
 ## Publish and update
 
-The `Build and publish bootc image` workflow runs every five minutes (GitHub Actions' minimum scheduled interval) and on pushes to `main`. It publishes:
+The `Build and publish bootc image` workflow runs daily at 06:17 UTC and on every push to `main` (including merges). It publishes:
 
 - `ghcr.io/eth0lo/bootc-gnome:stable` — moving update channel
 - `ghcr.io/eth0lo/bootc-gnome:sha-<commit>` — immutable build reference
