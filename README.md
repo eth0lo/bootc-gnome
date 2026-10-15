@@ -68,7 +68,7 @@ The workflow uses the repository Actions secrets `IA_ACCESS_KEY_ID` and `IA_SECR
 - [Download the installer ISO](https://archive.org/download/bootc-gnome/bootc-gnome.iso)
 - [Download its SHA-256 checksum](https://archive.org/download/bootc-gnome/bootc-gnome.iso.sha256)
 
-The upload overwrites the previous ISO without retaining backup copies. The Actions artifact is also available from the completed workflow run's **Artifacts** section for 30 days.
+After downloading both files into the same directory, verify the ISO with `sha256sum -c bootc-gnome.iso.sha256`. The workflow removes the previous Archive.org files without keeping backups, then uploads the new ISO and checksum to the same stable URLs. The Actions artifact is also available from the completed workflow run's **Artifacts** section for 30 days.
 
 For a local ISO build from the published image:
 

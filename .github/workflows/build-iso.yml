@@ -49,7 +49,7 @@ jobs:
         run: |
           iso="output/bootiso/bootc-gnome.iso"
           mv output/bootiso/install.iso "$iso"
-          sha256sum "$iso" > "$iso.sha256"
+          (cd output/bootiso && sha256sum bootc-gnome.iso > bootc-gnome.iso.sha256)
           echo "path=$iso" >> "$GITHUB_OUTPUT"
           echo "name=$(basename "$iso")" >> "$GITHUB_OUTPUT"
 
@@ -82,6 +82,13 @@ jobs:
             echo "Internet Archive credentials are missing" >&2
             exit 1
           fi
+
+          # Remove the existing objects first so the stable URLs always serve
+          # the new build rather than a stale copy of the same filename.
+          ia delete "$IA_ITEM_ID" \
+            bootc-gnome.iso \
+            bootc-gnome.iso.sha256 \
+            --no-backup
 
           ia upload "$IA_ITEM_ID" \
             "$ISO_PATH" \
