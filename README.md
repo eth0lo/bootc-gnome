@@ -10,6 +10,8 @@ The Containerfile explicitly installs GDM, GNOME Shell/session/settings, a termi
 
 The image uses Fedora's `fedora-bootc:latest` base (latest stable Fedora bootc release) and enables GDM and NetworkManager.
 
+On first boot with no user account present, GNOME Initial Setup prompts you to create one. There is no default username or password.
+
 ## Build locally
 
 Requirements: Podman and an internet connection.

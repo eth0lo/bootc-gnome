@@ -6,6 +6,7 @@ FROM quay.io/fedora/fedora-bootc:latest
 RUN dnf -y --setopt=install_weak_deps=False install \
         gdm \
         gnome-control-center \
+        gnome-initial-setup \
         gnome-session \
         gnome-settings-daemon \
         gnome-shell \
