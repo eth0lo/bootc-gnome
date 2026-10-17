@@ -1,9 +1,9 @@
-# Fedora 43 GNOME group selection
+# Fedora 44 GNOME group selection
 
-This document records a small Fedora 43 package-group selection for a GNOME
+This document records a small Fedora 44 package-group selection for a GNOME
 system. It uses Fedora comps groups rather than listing individual packages.
-The group definitions were gathered from the [Fedora 43 Everything repository
-comps metadata](https://dl.fedoraproject.org/pub/fedora/linux/releases/43/Everything/x86_64/os/repodata/73a6103e51d00abd1abd50eb54f98a07b398a86972555b532af6acdb98565c3d-comps-Everything.x86_64.xml.zst).
+The group definitions were gathered from the [Fedora 44 Everything repository
+comps metadata](https://dl.fedoraproject.org/pub/fedora/linux/releases/44/Everything/x86_64/os/repodata/6a37d36914955dc65cf6dc037c37dcf00c64ded464dc34164a674bf65fa16927-comps-Everything.x86_64.xml.zst).
 
 ## Groups
 
@@ -12,6 +12,7 @@ comps metadata](https://dl.fedoraproject.org/pub/fedora/linux/releases/43/Everyt
 | `core` | Core operating-system packages. |
 | `base-graphical` | Base graphical-system components. |
 | `gnome-desktop` | GNOME desktop environment and its required/default applications. |
+| `networkmanager-submodules` | Common NetworkManager modules for Wi-Fi, Bluetooth, and WWAN, plus `dnsmasq`, `iptables-nft`, and `wpa_supplicant`. |
 | `domain-client` | Domain membership tools, including `oddjob-mkhomedir`, SSSD clients, and Samba/Winbind utilities. |
 | `hardware-support` | General hardware support. |
 | `printing` | Printing support. |
@@ -24,6 +25,7 @@ sudo dnf -y group install \
     core \
     base-graphical \
     gnome-desktop \
+    networkmanager-submodules \
     domain-client \
     hardware-support \
     printing \
@@ -31,7 +33,7 @@ sudo dnf -y group install \
 ```
 
 This selection does not install the separate `firefox` or `libreoffice` groups.
-For reproducible results, use Fedora 43 repositories when installing these
+For reproducible results, use Fedora 44 repositories when installing these
 groups; group contents can change between Fedora releases.
 
 `gnome-desktop` includes `gnome-initial-setup`; do not install it a second time
@@ -39,7 +41,12 @@ as an explicit package. `domain-client` includes `oddjob-mkhomedir`, but the
 image must also enable authselect's `with-mkhomedir` feature and the
 `oddjobd.service` for PAM to create home directories on first login.
 
-The Fedora 43 `domain-client` group also installs `adcli`, `freeipa-client`,
+`core` installs `NetworkManager` by default. `networkmanager-submodules` adds
+`NetworkManager-bluetooth`, `NetworkManager-wifi`, `NetworkManager-wwan`,
+`dnsmasq`, `iptables-nft`, and `wpa_supplicant` as default packages, so the
+Wi-Fi module does not need to be listed as a separate package.
+
+The Fedora 44 `domain-client` group also installs `adcli`, `freeipa-client`,
 `samba-common-tools`, `samba-winbind`, `sssd-ad`, and `sssd-ipa` as mandatory
 packages. Its default packages are `libsss_autofs`, `libsss_sudo`, and
 `sssd-nfs-idmap`.

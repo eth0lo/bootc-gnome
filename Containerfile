@@ -1,12 +1,13 @@
-FROM quay.io/fedora/fedora-bootc:43
+FROM quay.io/fedora/fedora-bootc:44
 
-# Use the Fedora 43 GNOME group selection documented in FEDORA-43-GROUPS.md,
+# Use the Fedora 44 GNOME group selection documented in FEDORA-44-GROUPS.md,
 # not the broader Workstation environment. Keep first-boot account creation
 # available through GNOME Initial Setup.
 RUN dnf -y group install \
         core \
         base-graphical \
         gnome-desktop \
+        networkmanager-submodules \
         domain-client \
         hardware-support \
         printing \
@@ -15,7 +16,6 @@ RUN dnf -y group install \
         authselect \
         gdm \
         glibc-langpack-en \
-        NetworkManager-wifi \
     && dnf clean all
 
 # In bootc, /home points to /var/home. Create that parent directory at boot;

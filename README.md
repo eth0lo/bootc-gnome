@@ -6,9 +6,9 @@ A Fedora bootc desktop using a selected set of GNOME-related groups. The image d
 
 ## Image contents
 
-The Containerfile uses the Fedora 43 group selection in `FEDORA-43-GROUPS.md`: `core`, `base-graphical`, `gnome-desktop`, `domain-client`, `hardware-support`, `printing`, and `multimedia`. It does not install the Workstation environment, Firefox, or LibreOffice. `gnome-desktop` provides GNOME Initial Setup, which prompts you to create the first user account. `domain-client` supplies domain and Samba/Winbind tools as well as `oddjob-mkhomedir`; authselect's `with-mkhomedir` feature and `oddjobd.service` are enabled so the first login creates the user's home under `/var/home`. Active local administrators can check rpm-ostree updates through GNOME Software without an authentication prompt; installing or applying updates still requires authorization. The image also includes GDM, NetworkManager Wi-Fi, and the English locale.
+The Containerfile uses the Fedora 44 group selection in `FEDORA-44-GROUPS.md`: `core`, `base-graphical`, `gnome-desktop`, `networkmanager-submodules`, `domain-client`, `hardware-support`, `printing`, and `multimedia`. It does not install the Workstation environment, Firefox, or LibreOffice. `networkmanager-submodules` supplies NetworkManager's Wi-Fi, Bluetooth, and WWAN modules. `gnome-desktop` provides GNOME Initial Setup, which prompts you to create the first user account. `domain-client` supplies domain and Samba/Winbind tools as well as `oddjob-mkhomedir`; authselect's `with-mkhomedir` feature and `oddjobd.service` are enabled so the first login creates the user's home under `/var/home`. Active local administrators can check rpm-ostree updates through GNOME Software without an authentication prompt; installing or applying updates still requires authorization. The image also includes GDM and the English locale.
 
-The local development image is pinned to Fedora 43 so its group contents match the documented selection. These local changes are still under development; the published GHCR image remains the last pushed build.
+The local development image is pinned to Fedora 44 so its group contents match the documented selection. These local changes are still under development; the published GHCR image remains the last pushed build.
 
 ## Build locally
 
@@ -18,7 +18,7 @@ Requirements: Podman, sudo access, and an internet connection. The helper builds
 ./scripts/build-image.sh
 ```
 
-This builds `localhost/bootc-gnome:local` from the local Containerfile and refreshes the Fedora 43 base image. You can choose another local tag:
+This builds `localhost/bootc-gnome:local` from the local Containerfile and refreshes the Fedora 44 base image. You can choose another local tag:
 
 ```sh
 ./scripts/build-image.sh localhost/bootc-gnome:test
