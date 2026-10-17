@@ -18,20 +18,21 @@ RUN dnf -y group install \
         NetworkManager-wifi \
     && dnf clean all
 
+# In bootc, /home points to /var/home. Create that parent directory at boot;
+# PAM/oddjob creates each user's /var/home/<user> directory on first login.
+COPY --chmod=0644 files/usr/lib/tmpfiles.d/bootc-gnome-home.conf /usr/lib/tmpfiles.d/bootc-gnome-home.conf
+COPY --chmod=0644 files/etc/polkit-1/rules.d/10-rpmostree-repo-refresh.rules /etc/polkit-1/rules.d/10-rpmostree-repo-refresh.rules
+
+# GNOME Initial Setup created the account but left its home directory missing.
+# domain-client installs oddjob-mkhomedir; authselect adds its PAM module, and
+# oddjobd creates /var/home/<user> at first login. Creating /var/home alone
+# provides only the parent, so enable the PAM feature and service as well.
 RUN install -d -m 0755 /var/home \
-    && printf 'd /var/home 0755 root root -\n' > /usr/lib/tmpfiles.d/bootc-gnome-home.conf \
-    && install -d -m 0755 /etc/polkit-1/rules.d \
-    && printf '%s\n' \
-        'polkit.addRule(function(action, subject) {' \
-        '    if (action.id === "org.projectatomic.rpmostree1.repo-refresh" &&' \
-        '        subject.active === true &&' \
-        '        subject.local === true &&' \
-        '        (subject.isInGroup("wheel") || subject.isInGroup("sudo"))) {' \
-        '        return polkit.Result.YES;' \
-        '    }' \
-        '});' > /etc/polkit-1/rules.d/10-rpmostree-repo-refresh.rules \
     && authselect enable-feature with-mkhomedir \
-    && systemctl enable gdm.service NetworkManager.service oddjobd.service
+    && systemctl enable oddjobd.service
+
+# Start the graphical desktop and network manager at boot.
+RUN systemctl enable gdm.service NetworkManager.service
 
 LABEL org.opencontainers.image.title="bootc-gnome"
 LABEL org.opencontainers.image.description="A minimal Fedora bootc desktop with individually selected GNOME packages"

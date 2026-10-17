@@ -14,10 +14,11 @@ refresh policy therefore was not the source of this particular prompt.
 
 ## Resolution
 
-Added a narrow PolicyKit rule in the [`Containerfile`](../Containerfile) for
-`org.projectatomic.rpmostree1.repo-refresh`. It returns `YES` only when the
-request comes from an **active local session** and the user belongs to
-`wheel` or `sudo`.
+Added a narrow [PolicyKit rule](../files/etc/polkit-1/rules.d/10-rpmostree-repo-refresh.rules)
+for `org.projectatomic.rpmostree1.repo-refresh`, copied into the image by the
+[`Containerfile`](../Containerfile). It returns `YES` only when the request
+comes from an **active local session** and the user belongs to `wheel` or
+`sudo`.
 
 The rule grants permission to refresh repository metadata (check for
 available updates) only. It does not authorize rpm-ostree's `upgrade`,

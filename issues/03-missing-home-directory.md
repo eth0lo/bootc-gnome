@@ -24,8 +24,9 @@ change the image.
 The first image change created `/var/home`, but that only created the parent,
 not each user's home. The final image configuration now:
 
-- Keeps `/var/home` present at boot using an image directory and a tmpfiles
-  entry in the [`Containerfile`](../Containerfile).
+- Keeps `/var/home` present at boot using an image directory and the
+  [`bootc-gnome-home.conf`](../files/usr/lib/tmpfiles.d/bootc-gnome-home.conf)
+  tmpfiles entry.
 - Installs Fedora 43's `domain-client` group, which includes
   `oddjob-mkhomedir` and its `oddjob` service dependency, as well as the
   domain/Samba tools intentionally requested for the image.
