@@ -35,6 +35,7 @@ jobs:
             --privileged \
             --security-opt label=type:unconfined_t \
             -v "$PWD/output:/output" \
+            -v "$PWD/iso-config.toml:/config.toml:ro" \
             -v /var/lib/containers/storage:/var/lib/containers/storage \
             quay.io/centos-bootc/bootc-image-builder:latest \
             --type anaconda-iso \
