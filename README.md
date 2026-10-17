@@ -1,47 +1,48 @@
 # bootc-gnome
 
-A minimal Fedora bootc desktop with GNOME components installed individually. The image does **not** install Fedora's Workstation package group.
+A Fedora bootc desktop using a selected set of GNOME-related groups. The image does **not** install Fedora's Workstation environment.
 
 **[Download the latest installer ISO](https://archive.org/download/bootc-gnome/bootc-gnome.iso)**
 
 ## Image contents
 
-The Containerfile explicitly installs GDM, GNOME Shell/session/settings, a terminal, a text editor, Files, Wi-Fi support, and user-directory defaults. Add packages to that list when you want additional desktop applications; there is no Workstation bundle that pulls them in implicitly.
+The Containerfile uses the Fedora 43 group selection in `FEDORA-43-GROUPS.md`: `core`, `base-graphical`, `gnome-desktop`, `domain-client`, `hardware-support`, `printing`, and `multimedia`. It does not install the Workstation environment, Firefox, or LibreOffice. `gnome-desktop` provides GNOME Initial Setup, which prompts you to create the first user account. `domain-client` supplies domain and Samba/Winbind tools as well as `oddjob-mkhomedir`; authselect's `with-mkhomedir` feature and `oddjobd.service` are enabled so the first login creates the user's home under `/var/home`. Active local administrators can check rpm-ostree updates through GNOME Software without an authentication prompt; installing or applying updates still requires authorization. The image also includes GDM, NetworkManager Wi-Fi, and the English locale.
 
-The image uses Fedora's `fedora-bootc:latest` base (latest stable Fedora bootc release) and enables GDM and NetworkManager.
-
-On first boot with no user account present, GNOME Initial Setup prompts you to create one. There is no default username or password.
+The local development image is pinned to Fedora 43 so its group contents match the documented selection. These local changes are still under development; the published GHCR image remains the last pushed build.
 
 ## Build locally
 
-Requirements: Podman and an internet connection.
+Requirements: Podman, sudo access, and an internet connection. The helper builds with rootful Podman so bootc-image-builder can use the same local image store.
 
 ```sh
 ./scripts/build-image.sh
 ```
 
-This builds `localhost/bootc-gnome:local` and always refreshes the Fedora base image. You can choose another local tag:
+This builds `localhost/bootc-gnome:local` from the local Containerfile and refreshes the Fedora 43 base image. You can choose another local tag:
 
 ```sh
 ./scripts/build-image.sh localhost/bootc-gnome:test
 ```
 
-### Test in a VM
+### Test the container image in a VM
 
-Build a qcow2 disk with bootc-image-builder from the local image. Rootful Podman is used here so the image builder can access the local image store:
+Build a QCOW2 disk from the local image:
 
 ```sh
-sudo podman build --pull=always -t localhost/bootc-gnome:local -f Containerfile .
-mkdir -p output
-sudo podman run --rm --privileged \
-  --security-opt label=type:unconfined_t \
-  -v ./output:/output \
-  -v /var/lib/containers/storage:/var/lib/containers/storage \
-  quay.io/centos-bootc/bootc-image-builder:latest \
-  --type qcow2 --rootfs btrfs localhost/bootc-gnome:local
+./scripts/build-qcow2.sh
 ```
 
 Boot the generated `output/qcow2/disk.qcow2` in your preferred VM manager. For example, with libvirt, create a UEFI VM and attach that disk.
+
+### Build a local installer ISO
+
+After the image has been tested, build an Anaconda installer ISO from the local image. `iso-config.toml` removes the root entry Anaconda writes into `/etc/fstab`; bootc uses a read-only composefs overlay for `/`, so remounting that root as Btrfs causes `systemd-remount-fs.service` to fail.
+
+```sh
+./scripts/build-iso.sh
+```
+
+The ISO is written to `output/bootiso/install.iso`. Both local image-builder scripts accept an image reference as their first argument.
 
 ## Publish and update
 
@@ -69,15 +70,3 @@ The workflow uses the repository Actions secrets `IA_ACCESS_KEY_ID` and `IA_SECR
 - [Download its SHA-256 checksum](https://archive.org/download/bootc-gnome/bootc-gnome.iso.sha256)
 
 After downloading both files into the same directory, verify the ISO with `sha256sum -c bootc-gnome.iso.sha256`. The workflow removes the previous Archive.org files without keeping backups, then uploads the new ISO and checksum to the same stable URLs. The Actions artifact is also available from the completed workflow run's **Artifacts** section for 30 days.
-
-For a local ISO build from the published image:
-
-```sh
-./scripts/build-iso.sh
-```
-
-The generated ISO is `output/bootiso/install.iso`. To build from a different image reference, pass it as an argument:
-
-```sh
-./scripts/build-iso.sh ghcr.io/eth0lo/bootc-gnome:sha-<commit>
-```
