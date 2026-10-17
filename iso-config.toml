@@ -1,0 +1,7 @@
+[customizations.installer.kickstart]
+contents = """
+%post --erroronfail
+awk 'NF == 0 || $1 ~ /^#/ || $2 != "/"' /etc/fstab > /etc/fstab-new
+mv /etc/fstab-new /etc/fstab
+%end
+"""

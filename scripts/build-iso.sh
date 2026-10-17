@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-image="${1:-ghcr.io/eth0lo/bootc-gnome:stable}"
+image="${1:-localhost/bootc-gnome:local}"
 mkdir -p output
 
 if [[ "$(id -u)" -eq 0 ]]; then
@@ -12,12 +12,21 @@ else
     output_owner="$(id -u):$(id -g)"
 fi
 
-"${container_engine[@]}" pull "$image"
+if [[ "$image" == localhost/* ]]; then
+    if ! "${container_engine[@]}" image exists "$image"; then
+        printf 'Local image %s not found; run ./scripts/build-image.sh first\n' "$image" >&2
+        exit 1
+    fi
+else
+    "${container_engine[@]}" pull "$image"
+fi
+
 "${container_engine[@]}" run \
     --rm \
     --privileged \
     --security-opt label=type:unconfined_t \
     -v "$PWD/output:/output" \
+    -v "$PWD/iso-config.toml:/config.toml:ro" \
     -v /var/lib/containers/storage:/var/lib/containers/storage \
     quay.io/centos-bootc/bootc-image-builder:latest \
     --type anaconda-iso \
