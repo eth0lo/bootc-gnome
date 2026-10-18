@@ -1,0 +1,8 @@
+[ublue-os-packages]
+name=Universal Blue native desktop applications for Fedora 44
+baseurl=https://download.copr.fedorainfracloud.org/results/ublue-os/packages/fedora-44-$basearch/
+enabled=0
+gpgcheck=1
+gpgkey=https://download.copr.fedorainfracloud.org/results/ublue-os/packages/pubkey.gpg
+includepkgs=bazaar
+skip_if_unavailable=0

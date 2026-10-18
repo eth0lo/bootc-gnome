@@ -1,0 +1,83 @@
+#!/usr/bin/python3
+"""Deliver each system Flatpak default once, preserving subsequent removal."""
+
+import argparse
+import fcntl
+from pathlib import Path
+import re
+import subprocess
+import sys
+
+
+def flatpak_command(*args, check=True):
+    return subprocess.run(args, check=check, text=True, capture_output=True)
+
+
+def unmetered():
+    try:
+        result = subprocess.run(
+            ["busctl", "--system", "--auto-start=no", "--timeout=5s", "get-property",
+             "org.freedesktop.NetworkManager", "/org/freedesktop/NetworkManager",
+             "org.freedesktop.NetworkManager", "Metered"],
+            check=True, text=True, capture_output=True, timeout=6,
+        )
+    except (subprocess.SubprocessError, OSError):
+        return False
+    # Only explicitly unmetered qualifies. GUESS_NO (4) is inferred rather
+    # than known, so defer exactly as we do when metering is unavailable.
+    return result.stdout.strip() == "u 2"
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--seed", action="store_true", help="image build: require installation now")
+    parser.add_argument("--manifest", type=Path, default=Path("/usr/share/bootc-gnome/flatpak-defaults"))
+    parser.add_argument("--state-dir", type=Path, default=Path("/var/lib/bootc-gnome-flatpaks"))
+    args = parser.parse_args()
+    apps = []
+    for line in args.manifest.read_text().splitlines():
+        app = line.split("#", 1)[0].strip()
+        if not app:
+            continue
+        if not re.fullmatch(r"[A-Za-z][A-Za-z0-9_-]*(?:\.[A-Za-z0-9_-]+){2,}", app):
+            parser.error(f"Invalid application ID: {app}")
+        apps.append(app)
+    args.state_dir.mkdir(parents=True, exist_ok=True)
+    with (args.state_dir / "delivery.lock").open("a") as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX)
+        pending = []
+        for app in apps:
+            marker = args.state_dir / app
+            if marker.exists():
+                continue
+            if flatpak_command("flatpak", "info", "--system", f"{app}//stable", check=False).returncode == 0:
+                marker.touch()
+            else:
+                pending.append(app)
+        if not pending:
+            return
+        if not args.seed and not unmetered():
+            print("Deferring system Flatpak delivery: connection is metered, offline, or unknown")
+            return
+        failed = False
+        for app in pending:
+            try:
+                ref = f"{app}//stable"
+                flatpak_command("flatpak", "install", "--system", "--noninteractive", "--assumeyes", "flathub", ref)
+                flatpak_command("flatpak", "info", "--system", ref)
+                # An empty, atomically created file records success, never
+                # intent. It survives removal, OS upgrades, and rollbacks.
+                (args.state_dir / app).touch()
+                print(f"Delivered system Flatpak: {app}")
+            except subprocess.CalledProcessError as error:
+                print(f"Delivery of {app} failed; will retry: {error.stderr}", file=sys.stderr)
+                failed = True
+        if failed:
+            raise SystemExit(1)
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except subprocess.CalledProcessError as error:
+        raise SystemExit(f"Flatpak delivery failed; will retry: {error.stderr}") from error

@@ -246,6 +246,39 @@ RUN dnf -y --setopt=exclude_from_weak=PackageKit group install \
     fi \
     && dnf clean all
 
+# Native Bazaar is image-managed. Use Universal Blue's Fedora 44 package,
+# pin its verified stable build, verify RPM signatures, and leave the COPR
+# disabled outside this transaction. No Bazaar source patches are applied.
+COPY --chmod=0644 files/etc/yum.repos.d/bazaar.repo /etc/yum.repos.d/bazaar.repo
+COPY --chmod=0644 files/usr/share/ublue-os/bazaar/main.yaml /usr/share/ublue-os/bazaar/main.yaml
+COPY --chmod=0644 files/usr/share/ublue-os/bazaar/content.yaml /usr/share/ublue-os/bazaar/content.yaml
+RUN dnf -y --enablerepo=ublue-os-packages --setopt=exclude_from_weak=PackageKit install \
+        bazaar-0.9.3-4.fc44 python3-gobject-base \
+    && dnf clean all
+
+COPY --chmod=0755 files/usr/libexec/bootc-gnome-flathub /usr/libexec/bootc-gnome-flathub
+COPY --chmod=0755 files/usr/libexec/bootc-gnome-flatpak-defaults /usr/libexec/bootc-gnome-flatpak-defaults
+COPY --chmod=0644 files/usr/share/bootc-gnome/flatpak-defaults /usr/share/bootc-gnome/flatpak-defaults
+COPY --chmod=0644 files/usr/share/bootc-gnome/flathub-runtimes.filter /usr/share/bootc-gnome/flathub-runtimes.filter
+COPY --chmod=0644 files/usr/lib/systemd/system/bootc-gnome-flathub.* /usr/lib/systemd/system/
+COPY --chmod=0644 files/usr/lib/systemd/system/bootc-gnome-flatpak-defaults.* /usr/lib/systemd/system/
+COPY --chmod=0644 files/usr/lib/systemd/user/bootc-gnome-flathub.* /usr/lib/systemd/user/
+RUN curl --fail --location --retry 3 https://dl.flathub.org/repo/flathub.flatpakrepo \
+        --output /usr/share/bootc-gnome/flathub.flatpakrepo \
+    && printf '%s  %s\n' \
+        3371dd250e61d9e1633630073fefda153cd4426f72f4afa0c3373ae2e8fea03a \
+        /usr/share/bootc-gnome/flathub.flatpakrepo | sha256sum --check \
+    && systemctl disable flatpak-add-fedora-repos.service \
+    && systemctl mask flatpak-add-fedora-repos.service \
+    && /usr/libexec/bootc-gnome-flathub seed \
+    && /usr/libexec/bootc-gnome-flatpak-defaults --seed \
+    && /usr/libexec/bootc-gnome-flathub system \
+    && flatpak list --system --columns=ref,active > /usr/share/bootc-gnome/flatpak-build-refs.txt \
+    && systemctl enable bootc-gnome-flathub.service bootc-gnome-flathub.timer bootc-gnome-flatpak-defaults.timer \
+    && systemctl --global enable bootc-gnome-flathub.service bootc-gnome-flathub.timer \
+    && mv /usr/bin/bazaar-daemon /usr/libexec/bootc-gnome-bazaar-daemon
+COPY --chmod=0755 files/usr/libexec/bootc-gnome-bazaar /usr/bin/bazaar-daemon
+
 # In bootc, /home points to /var/home. Create that parent directory at boot;
 # PAM/oddjob creates each user's /var/home/<user> directory on first login.
 COPY --chmod=0644 files/usr/lib/tmpfiles.d/bootc-gnome-home.conf /usr/lib/tmpfiles.d/bootc-gnome-home.conf

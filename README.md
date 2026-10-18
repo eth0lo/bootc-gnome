@@ -6,7 +6,7 @@ A Fedora bootc desktop using a selected set of GNOME-related groups. The image d
 
 ## Image contents
 
-The Containerfile uses selected Fedora 44 groups documented in `FEDORA-44-GROUPS.md`. GNOME desktop and multimedia groups are expanded into their Fedora 44 comps package selections so GNOME Software and its OS-update integrations are not installed. PackageKit's daemon is excluded from weak dependencies; `PackageKit-glib` remains because GNOME Document Scanner (`simple-scan`) requires the client library. The image retains Flatpak and fwupd command-line support. It does not install the Workstation environment, Firefox, or LibreOffice. `networkmanager-submodules` supplies NetworkManager's Wi-Fi, Bluetooth, and WWAN modules. GNOME Initial Setup prompts you to create the first user account. `domain-client` supplies domain and Samba/Winbind tools as well as `oddjob-mkhomedir`; authselect's `with-mkhomedir` feature and `oddjobd.service` are enabled so the first login creates the user's home under `/var/home`. The image also includes GDM and the English locale.
+The Containerfile uses selected Fedora 44 groups documented in `FEDORA-44-GROUPS.md`. GNOME desktop and multimedia groups are expanded into their Fedora 44 comps package selections so GNOME Software and its OS-update integrations are not installed. PackageKit's daemon is excluded from weak dependencies; `PackageKit-glib` remains because GNOME Document Scanner (`simple-scan`) requires the client library. The image includes native Bazaar for Flatpak applications, system-wide Apostrophe, and fwupd command-line support. It does not install the Workstation environment, Firefox, or LibreOffice. `networkmanager-submodules` supplies NetworkManager's Wi-Fi, Bluetooth, and WWAN modules. GNOME Initial Setup prompts you to create the first user account. `domain-client` supplies domain and Samba/Winbind tools as well as `oddjob-mkhomedir`; authselect's `with-mkhomedir` feature and `oddjobd.service` are enabled so the first login creates the user's home under `/var/home`. The image also includes GDM and the English locale.
 
 See the [troubleshooting notes](docs/troubleshooting/README.md) for development
 history and [ADR 0001](docs/adr/0001-bootc-sole-os-update-path.md) for the
@@ -26,6 +26,70 @@ This builds `localhost/bootc-gnome:local` from the local Containerfile and refre
 
 ```sh
 ./scripts/build-image.sh localhost/bootc-gnome:test
+```
+
+### Flatpak applications
+
+Bazaar is a native, image-managed application: bootc updates the store itself,
+while Bazaar manages Flatpak applications rather than operating-system updates.
+Its Fedora 44 RPM is pinned to Universal Blue's `0.9.3-4.fc44` build from the
+`ublue-os/packages` COPR, matching Bazzite's published Fedora 44 stable version.
+The repository is disabled by default and restricted to the `bazaar` package;
+RPM signature checking is enabled and Fedora supplies dependencies. Bazaar is
+built by Universal Blue from upstream release source without downstream source
+patches ([Fedora 44 package spec](https://download.copr.fedorainfracloud.org/results/ublue-os/packages/fedora-44-x86_64/10856688-bazaar/bazaar.spec)).
+The package's hardcoded configuration paths are provided by this image;
+the base image defines no extra content rows, recommendations, or transaction
+hooks.
+
+Each account gets an enabled user Flathub remote before Bazaar's daemon starts.
+A user service also configures new accounts at login and repairs the remote
+every two minutes. The definition and signing key are carried in the image, so
+configuration does not need networking. The system remote is enabled but
+non-enumerated: it contributes existing shared applications rather than a second
+catalog for installing new apps system-wide. Fedora's remote-creation service is
+masked. A second system remote, `flathub-runtimes`, points to the same signed
+Flathub repository with a runtime-only filter. It allows Flatpak to resolve new
+runtime branches during system-app updates without offering system app installs.
+The ISO desktop harness verifies the selected package's ordinary Get/Install
+path selects user scope; see the [Flatpak acceptance checks](tests/flatpak/README.md)
+for coverage and additional UI entry points.
+
+`org.gnome.gitlab.somas.Apostrophe` is the first shared default. Its stable app
+and required runtime/extensions are installed under `/var/lib/flatpak` during
+image composition, so fresh installations carry the payload offline. Optional
+TeXLive is not selected. App/runtime refs follow Flathub stable at composition
+time; the image records their refs and resolved commit prefixes in
+`/usr/share/bootc-gnome/flatpak-build-refs.txt`. The Flathub repository definition
+is checksum-verified; a deliberate checksum update is needed if its contents or
+signing key change.
+
+Bootc initializes `/var` on a fresh install, but does not synchronize it on
+upgrades. To introduce another shared app, add its stable Flathub ID to
+`files/usr/share/bootc-gnome/flatpak-defaults`. The provisioning timer offers
+delivery five minutes after boot and every fifteen minutes afterward, with a
+random delay. Downloads require a known-unmetered NetworkManager connection.
+Only NetworkManager's explicit `NO` state qualifies; `GUESS_NO`, `YES`,
+`GUESS_YES`, unavailable, and unknown states defer delivery.
+Runtime dependencies come from the runtime-only Flathub view. A failing app does
+not block other pending defaults; failures remain retryable.
+
+Successful delivery is recorded per app in `/var/lib/bootc-gnome-flatpaks`,
+including apps seeded in the image. Removing an app later is respected across
+reboots, upgrades, and rollbacks. Removing its manifest entry does not uninstall
+it. The provisioner does not update already-delivered apps: their lifecycle is
+Flatpak-managed, independently of bootc. Standard Bazaar behavior governs user
+application downloads and updates.
+
+Useful diagnostics:
+
+```sh
+flatpak list --system
+flatpak list --user
+flatpak remotes --system --show-details
+flatpak remotes --user --show-details
+journalctl -u bootc-gnome-flatpak-defaults.service
+systemctl --user status bootc-gnome-flathub.timer
 ```
 
 ### Disposable builder VM

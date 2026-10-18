@@ -1,0 +1,11 @@
+[Unit]
+Description=Deliver newly introduced system Flatpak applications once
+Requires=bootc-gnome-flathub.service
+After=bootc-gnome-flathub.service NetworkManager.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/libexec/bootc-gnome-flatpak-defaults
+TimeoutStartSec=1h
+Nice=19
+IOSchedulingClass=idle

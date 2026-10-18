@@ -1,0 +1,9 @@
+[Unit]
+Description=Restore this account's Flathub configuration without network access
+
+[Service]
+Type=oneshot
+ExecStart=/usr/libexec/bootc-gnome-flathub user
+
+[Install]
+WantedBy=default.target
