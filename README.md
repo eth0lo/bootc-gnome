@@ -58,6 +58,10 @@ disk persists between starts; `scripts/builder-sync.sh` copies the current
 checkout into the guest (excluding generated `output/` artifacts). See
 [`builder/README.md`](builder/README.md) for details.
 
+After preparing the builder, run `./scripts/test-boot.sh` to build a temporary
+test image and verify its first boot, desktop services, and staged-update unit
+configuration. See [`tests/README.md`](tests/README.md) for checks and evidence.
+
 ### Test the container image in a VM
 
 Build a QCOW2 disk from the local image:

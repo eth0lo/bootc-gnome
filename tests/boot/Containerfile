@@ -1,0 +1,22 @@
+ARG BASE_IMAGE
+FROM ${BASE_IMAGE}
+
+ARG TEST_SSH_PUBKEY
+ARG TEST_IMAGE
+
+RUN test -n "$TEST_SSH_PUBKEY" \
+    && test -n "$TEST_IMAGE" \
+    && dnf -y install openssh-server sudo \
+    && dnf clean all \
+    && useradd --create-home --shell /bin/bash boot-test \
+    && install -d -m 0700 -o boot-test -g boot-test /home/boot-test/.ssh \
+    && printf '%s\n' "$TEST_SSH_PUBKEY" > /home/boot-test/.ssh/authorized_keys \
+    && chown boot-test:boot-test /home/boot-test/.ssh/authorized_keys \
+    && printf 'PasswordAuthentication no\nPermitRootLogin no\n' > /etc/ssh/sshd_config.d/01-boot-test.conf \
+    && printf 'boot-test ALL=(ALL) NOPASSWD: ALL\n' > /etc/sudoers.d/90-boot-test \
+    && chmod 0440 /etc/sudoers.d/90-boot-test \
+    && install -d -m 0755 /usr/share/bootc-gnome \
+    && printf '%s\n' "$TEST_IMAGE" > /usr/share/bootc-gnome/boot-test-image \
+    && systemctl enable sshd.service
+
+COPY --chmod=0755 tests/boot/check-boot.sh /usr/local/sbin/bootc-gnome-check-boot
