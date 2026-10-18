@@ -1,4 +1,4 @@
-# 4. GNOME Software asked for credentials to check updates
+# 4. GNOME Software asked for credentials to check updates (superseded)
 
 ## Symptom and diagnosis
 
@@ -12,23 +12,20 @@ action `org.projectatomic.rpmostree1.repo-refresh` carries the exact message
 shown in the dialog and defaults to `auth_admin_keep`. Fedora's PackageKit
 refresh policy therefore was not the source of this particular prompt.
 
-## Resolution
+## Historical resolution
 
-Added a narrow [PolicyKit rule](../files/etc/polkit-1/rules.d/10-rpmostree-repo-refresh.rules)
-for `org.projectatomic.rpmostree1.repo-refresh`, copied into the image by the
-[`Containerfile`](../Containerfile). It returns `YES` only when the request
-comes from an **active local session** and the user belongs to `wheel` or
-`sudo`.
+The original workaround added a narrow PolicyKit rule for
+`org.projectatomic.rpmostree1.repo-refresh`, copied into the image by the
+Containerfile. That rule has since been removed along with GNOME Software and
+its OS-update integrations; bootc is now the sole supported OS-update path.
 
-The rule grants permission to refresh repository metadata (check for
-available updates) only. It does not authorize rpm-ostree's `upgrade`,
-package-install, rebase, rollback, or other actions; those retain their normal
-authentication requirements.
+The historical rule only granted permission to refresh repository metadata. It
+did not authorize rpm-ostree's `upgrade`, package-install, rebase, rollback, or
+other actions.
 
 ## Verification and status
 
-The rebuilt image was checked to contain the rule. A logic test confirmed that
-it permits the refresh action for active local `wheel`/`sudo` users, while
-rejecting other actions, non-admin users, and inactive sessions. The image,
-QCOW2, and ISO were rebuilt, and the user later reported that the prompt was
-gone in a fresh VM.
+The original rebuilt image was checked to contain the rule, and a logic test
+confirmed its scope. The image, QCOW2, and ISO were rebuilt, and the user later
+reported that the prompt was gone in a fresh VM. This workaround is superseded:
+GNOME Software and the authorization rule are no longer part of the image.

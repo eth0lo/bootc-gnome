@@ -11,13 +11,14 @@ the order the issues came up in the conversation.
 3. [The first user's home directory was missing](03-missing-home-directory.md)
    — provision `/var/home` and enable PAM/oddjob home creation.
 4. [GNOME Software asked for credentials to check updates](04-update-authentication-prompt.md)
-   — allow active local administrators to refresh rpm-ostree metadata without
-   authorizing update installation.
+   — historical rpm-ostree refresh authorization workaround, now superseded by
+   removing GNOME Software and using bootc for OS updates.
 
 ## Current outcome
 
-- The image and ISO include the locale, home-directory, and PolicyKit changes.
+- The image and ISO include the locale and home-directory changes.
 - A fresh VM boot was reported to work without the missing-home error.
-- The update-check credential prompt was reported gone.
+- The former update-check workaround has been superseded; bootc is the supported
+  OS-update path.
 - The fstab workaround is embedded in the rebuilt installer ISO; see the
   verification note in the fstab issue report.

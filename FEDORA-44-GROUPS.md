@@ -1,8 +1,10 @@
 # Fedora 44 GNOME group selection
 
-This document records a small Fedora 44 package-group selection for a GNOME
-system. It uses Fedora comps groups rather than listing individual packages.
-The group definitions were gathered from the [Fedora 44 Everything repository
+This document records the Fedora 44 comps groups and package selections used
+for a GNOME system. GNOME and multimedia group contents are expanded in the
+Containerfile so specific applications and update integrations can be omitted;
+the full compositions, with package types and exclusions, are recorded beside
+their explicit package lists. The group definitions were gathered from the [Fedora 44 Everything repository
 comps metadata](https://dl.fedoraproject.org/pub/fedora/linux/releases/44/Everything/x86_64/os/repodata/6a37d36914955dc65cf6dc037c37dcf00c64ded464dc34164a674bf65fa16927-comps-Everything.x86_64.xml.zst).
 
 ## Groups
@@ -18,19 +20,31 @@ comps metadata](https://dl.fedoraproject.org/pub/fedora/linux/releases/44/Everyt
 | `printing` | Printing support. |
 | `multimedia` | Multimedia support. |
 
-Install the groups with DNF:
+The Containerfile continues to install these unexpanded groups with DNF:
 
 ```sh
 sudo dnf -y group install \
     core \
     base-graphical \
-    gnome-desktop \
     networkmanager-submodules \
     domain-client \
     hardware-support \
-    printing \
-    multimedia
+    printing
 ```
+
+The Fedora 44 `gnome-desktop` group was expanded and its `gnome-software`,
+`PackageKit-command-not-found`, and `PackageKit-gtk3-module` entries omitted.
+The `multimedia` group's `PackageKit-gstreamer-plugin` entry was omitted, and
+its conditional `gstreamer-plugins-espeak` package is installed only when its
+`gstreamer` condition is met. The complete selected compositions at expansion
+time are documented in comments in `Containerfile`.
+
+The PackageKit daemon is excluded from weak dependencies, including the
+recommendation from the printer-configuration libraries, while printing
+support remains installed. `PackageKit-glib` is intentionally retained because
+`simple-scan` requires it; the library is not the PackageKit OS-update daemon.
+Flatpak and fwupd are explicit packages. bootc remains the supported operating-
+system update path.
 
 This selection does not install the separate `firefox` or `libreoffice` groups.
 For reproducible results, use Fedora 44 repositories when installing these
