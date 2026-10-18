@@ -18,6 +18,8 @@ The original workaround added a narrow PolicyKit rule for
 `org.projectatomic.rpmostree1.repo-refresh`, copied into the image by the
 Containerfile. That rule has since been removed along with GNOME Software and
 its OS-update integrations; bootc is now the sole supported OS-update path.
+The rationale and package-selection decisions are recorded in
+[ADR 0001](../adr/0001-bootc-sole-os-update-path.md).
 
 The historical rule only granted permission to refresh repository metadata. It
 did not authorize rpm-ostree's `upgrade`, package-install, rebase, rollback, or

@@ -13,9 +13,10 @@ English glibc locale data required to populate the picker.
 ## Resolution
 
 Added `glibc-langpack-en` to the explicit package installation in the
-[`Containerfile`](../Containerfile). The image remains pinned to Fedora 43 so
-the installed package groups and documented group selection use the same
-release.
+[`Containerfile`](../../Containerfile). At the time, the image was pinned to
+Fedora 43 so the installed package groups and documented group selection used
+the same release. The current local image uses Fedora 44; see
+[`FEDORA-44-GROUPS.md`](../../FEDORA-44-GROUPS.md).
 
 ## Verification and status
 

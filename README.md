@@ -8,6 +8,10 @@ A Fedora bootc desktop using a selected set of GNOME-related groups. The image d
 
 The Containerfile uses selected Fedora 44 groups documented in `FEDORA-44-GROUPS.md`. GNOME desktop and multimedia groups are expanded into their Fedora 44 comps package selections so GNOME Software and its OS-update integrations are not installed. PackageKit's daemon is excluded from weak dependencies; `PackageKit-glib` remains because GNOME Document Scanner (`simple-scan`) requires the client library. The image retains Flatpak and fwupd command-line support. It does not install the Workstation environment, Firefox, or LibreOffice. `networkmanager-submodules` supplies NetworkManager's Wi-Fi, Bluetooth, and WWAN modules. GNOME Initial Setup prompts you to create the first user account. `domain-client` supplies domain and Samba/Winbind tools as well as `oddjob-mkhomedir`; authselect's `with-mkhomedir` feature and `oddjobd.service` are enabled so the first login creates the user's home under `/var/home`. The image also includes GDM and the English locale.
 
+See the [troubleshooting notes](docs/troubleshooting/README.md) for development
+history and [ADR 0001](docs/adr/0001-bootc-sole-os-update-path.md) for the
+operating-system update policy and its trade-offs.
+
 The local development image is pinned to Fedora 44 so its group contents match the documented selection. These local changes are still under development; the published GHCR image remains the last pushed build.
 
 ## Build locally

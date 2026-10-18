@@ -14,7 +14,7 @@ described a remount that was invalid for the installed system.
 
 ## Resolution
 
-Added [`iso-config.toml`](../iso-config.toml) with a kickstart `%post` step
+Added [`iso-config.toml`](../../iso-config.toml) with a kickstart `%post` step
 that removes only entries whose mountpoint field is `/` from `/etc/fstab`:
 
 ```kickstart

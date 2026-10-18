@@ -25,9 +25,10 @@ The first image change created `/var/home`, but that only created the parent,
 not each user's home. The final image configuration now:
 
 - Keeps `/var/home` present at boot using an image directory and the
-  [`bootc-gnome-home.conf`](../files/usr/lib/tmpfiles.d/bootc-gnome-home.conf)
+  [`bootc-gnome-home.conf`](../../files/usr/lib/tmpfiles.d/bootc-gnome-home.conf)
   tmpfiles entry.
-- Installs Fedora 43's `domain-client` group, which includes
+- Installs Fedora's `domain-client` group (Fedora 43 at the time of the
+  original fix), which includes
   `oddjob-mkhomedir` and its `oddjob` service dependency, as well as the
   domain/Samba tools intentionally requested for the image.
 - Enables authselect's `with-mkhomedir` feature. This adds
@@ -36,8 +37,8 @@ not each user's home. The final image configuration now:
 - Enables `oddjobd.service` so PAM's home-creation module can perform the
   operation.
 
-GNOME Initial Setup remains installed through the `gnome-desktop` group; its
-redundant explicit package entry was removed. The `domain-client` group was
+GNOME Initial Setup remains included in the selected GNOME desktop packages;
+its redundant explicit package entry was removed. The `domain-client` group was
 not the cause of the original missing directory—the issue was that the image
 had no reliable per-user home-creation mechanism.
 
