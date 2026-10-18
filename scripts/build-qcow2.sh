@@ -1,4 +1,30 @@
 #!/usr/bin/env bash
+# Make a virtual hard drive with this desktop operating system already
+# installed.
+#
+# Choose the resulting file as a VM's hard drive in QEMU, virt-manager,
+# or GNOME Boxes, then start the VM to boot this system.
+#
+# This IS NOT an installer ISO; it boots the installed system directly.
+#
+# Before running this script, build the operating-system image:
+#   ./scripts/build-image.sh
+#
+# Then create a disk from the default image:
+#   ./scripts/build-qcow2.sh
+#
+# If you gave the image a different name, use that same name here:
+#   ./scripts/build-image.sh localhost/bootc-gnome:test
+#   ./scripts/build-qcow2.sh localhost/bootc-gnome:test
+#
+# OUTPUT: The disk is saved as output/qcow2/disk.qcow2.
+#
+# USAGE: Open it with a virtual-machine program such as QEMU,
+#        GNOME Boxes, or virt-manager.
+#
+# NOTE: Building directly on your computer may ask for your sudo password.
+#       Running this script inside the project's builder VM does not ask
+#       for a password.
 set -euo pipefail
 
 image="${1:-localhost/bootc-gnome:local}"
