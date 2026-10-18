@@ -58,6 +58,10 @@ disk persists between starts; `scripts/builder-sync.sh` copies the current
 checkout into the guest (excluding generated `output/` artifacts). See
 [`builder/README.md`](builder/README.md) for details.
 
+After preparing the builder, run `./scripts/test-boot.sh` to build a temporary
+test image and verify its first boot, desktop services, and staged-update unit
+configuration. See [`tests/README.md`](tests/README.md) for checks and evidence.
+
 ### Test the container image in a VM
 
 Build a QCOW2 disk from the local image:
@@ -87,7 +91,26 @@ The `Build and publish bootc image` workflow runs daily at 06:17 UTC and on ever
 
 The repository must have **Settings → Actions → General → Workflow permissions** set to allow the `GITHUB_TOKEN` to write packages. Make the GHCR package public for clients to pull without authentication.
 
-Installed clients can switch to the image and update with:
+Published installer images track the `stable` channel. Local image-builder
+scripts continue to preserve the image reference supplied to them, so test
+installations can track a local or other explicitly selected image.
+
+The image stages OS updates automatically without restarting the computer.
+Checks are offered every two hours, with randomized delay; successful checks
+are limited to one per day. Failed checks and checks deferred because the
+connection is metered or its metering state is unknown are retried at the next
+timer opportunity. Automatic checks run at low CPU and disk priority and do not
+wait for a user session. A staged update is activated on the next normal reboot.
+
+Inspect the schedule and staged deployment with:
+
+```sh
+systemctl status bootc-fetch-apply-updates.timer
+journalctl -u bootc-fetch-apply-updates.service
+sudo bootc status
+```
+
+Installed clients can switch to the image and manually check for updates with:
 
 ```sh
 sudo bootc switch ghcr.io/eth0lo/bootc-gnome:stable

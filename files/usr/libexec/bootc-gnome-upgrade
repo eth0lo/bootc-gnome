@@ -1,0 +1,42 @@
+#!/usr/bin/bash
+set -euo pipefail
+
+state_dir=/var/lib/bootc-gnome-upgrade
+last_success="$state_dir/last-success"
+daily_interval=86400
+
+mkdir -p "$state_dir"
+
+now=$(date +%s)
+if [[ -r "$last_success" ]] && read -r last_run < "$last_success"; then
+    if [[ "$last_run" =~ ^[0-9]+$ ]] && (( now - last_run < daily_interval )); then
+        exit 0
+    fi
+fi
+
+# Do not pull an OS image over a connection NetworkManager considers metered,
+# or when its status is unknown. The bounded query never gates desktop startup.
+if ! metering=$(timeout 5s busctl --system --auto-start=no --timeout=5s get-property \
+    org.freedesktop.NetworkManager \
+    /org/freedesktop/NetworkManager \
+    org.freedesktop.NetworkManager Metered 2>/dev/null); then
+    logger --tag bootc-gnome-upgrade 'Deferring update: NetworkManager metering state unavailable'
+    exit 0
+fi
+
+case "$metering" in
+    'u 2'|'u 4') ;;
+    *)
+        logger --tag bootc-gnome-upgrade "Deferring update: connection is metered or metering is unknown ($metering)"
+        exit 0
+        ;;
+esac
+
+if /usr/bin/bootc upgrade; then
+    printf '%s\n' "$now" > "$last_success.tmp"
+    mv -f "$last_success.tmp" "$last_success"
+else
+    status=$?
+    logger --priority err --tag bootc-gnome-upgrade "bootc upgrade failed with status $status; will retry"
+    exit "$status"
+fi
