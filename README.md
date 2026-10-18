@@ -87,7 +87,26 @@ The `Build and publish bootc image` workflow runs daily at 06:17 UTC and on ever
 
 The repository must have **Settings → Actions → General → Workflow permissions** set to allow the `GITHUB_TOKEN` to write packages. Make the GHCR package public for clients to pull without authentication.
 
-Installed clients can switch to the image and update with:
+Published installer images track the `stable` channel. Local image-builder
+scripts continue to preserve the image reference supplied to them, so test
+installations can track a local or other explicitly selected image.
+
+The image stages OS updates automatically without restarting the computer.
+Checks are offered every two hours, with randomized delay; successful checks
+are limited to one per day. Failed checks and checks deferred because the
+connection is metered or its metering state is unknown are retried at the next
+timer opportunity. Automatic checks run at low CPU and disk priority and do not
+wait for a user session. A staged update is activated on the next normal reboot.
+
+Inspect the schedule and staged deployment with:
+
+```sh
+systemctl status bootc-fetch-apply-updates.timer
+journalctl -u bootc-fetch-apply-updates.service
+sudo bootc status
+```
+
+Installed clients can switch to the image and manually check for updates with:
 
 ```sh
 sudo bootc switch ghcr.io/eth0lo/bootc-gnome:stable

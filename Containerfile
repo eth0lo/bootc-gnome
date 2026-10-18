@@ -258,6 +258,15 @@ RUN install -d -m 0755 /var/home \
     && authselect enable-feature with-mkhomedir \
     && systemctl enable oddjobd.service
 
+# Replace bootc's enabled apply-and-reboot schedule with a stage-only updater.
+# The timer offers checks every two hours; the helper rate-limits successful
+# checks to daily and retries deferred or failed checks at the next opportunity.
+COPY --chmod=0755 files/usr/libexec/bootc-gnome-upgrade /usr/libexec/bootc-gnome-upgrade
+COPY --chmod=0644 files/usr/lib/systemd/system/bootc-fetch-apply-updates.service.d/bootc-gnome.conf /usr/lib/systemd/system/bootc-fetch-apply-updates.service.d/bootc-gnome.conf
+COPY --chmod=0644 files/usr/lib/systemd/system/bootc-fetch-apply-updates.timer.d/bootc-gnome.conf /usr/lib/systemd/system/bootc-fetch-apply-updates.timer.d/bootc-gnome.conf
+RUN install -d -m 0755 /var/lib/bootc-gnome-upgrade \
+    && systemctl enable bootc-fetch-apply-updates.timer
+
 # Start the graphical desktop and network manager at boot.
 RUN systemctl enable gdm.service NetworkManager.service
 
