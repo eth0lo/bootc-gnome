@@ -1,0 +1,7 @@
+#!/usr/bin/bash
+set -euo pipefail
+
+# Cover desktop, systemd, and search-provider activation before the backend
+# inspects remotes. Remote definition/key import does not need networking.
+/usr/libexec/bootc-gnome-flathub user
+exec /usr/libexec/bootc-gnome-bazaar-daemon "$@"

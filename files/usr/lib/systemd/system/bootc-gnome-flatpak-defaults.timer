@@ -1,0 +1,10 @@
+[Unit]
+Description=Retry pending system Flatpak defaults on unmetered connections
+
+[Timer]
+OnBootSec=5min
+OnUnitInactiveSec=15min
+RandomizedDelaySec=1min
+
+[Install]
+WantedBy=timers.target

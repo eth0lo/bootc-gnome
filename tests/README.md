@@ -20,10 +20,19 @@ The test waits for SSH, then verifies that:
 - The update timer is enabled.
 - The effective update service runs
   `/usr/libexec/bootc-gnome-upgrade` without `--apply`.
+- Native Bazaar, seeded system Apostrophe, its delivery record, and the
+  non-enumerated system Flathub configuration survive installation.
+- Fedora's Flatpak remote-creation service is masked and the system Flatpak
+  delivery timer is enabled.
 
 This is a headless boot check: it verifies that GDM and the graphical systemd
 target are active, not that a person can see or interact with the login screen.
 It does not stage an update, reboot into one, or test rollback.
+
+The [Flatpak lifecycle tests](flatpak/README.md) additionally cover remote repair,
+delivery/retry history, a real signed Apostrophe runtime transition, and actual
+offline Anaconda installation with GNOME app workflows. They also provide an
+online overlay test of Bazaar's normal per-user Get/Install path.
 
 ## Requirements
 

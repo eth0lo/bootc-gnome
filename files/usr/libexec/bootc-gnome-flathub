@@ -1,0 +1,71 @@
+#!/usr/bin/python3
+"""Restore vendor Flathub configuration using only local, image-carried data."""
+
+import argparse
+import fcntl
+import hashlib
+import os
+from pathlib import Path
+
+import gi
+
+gi.require_version("Flatpak", "1.0")
+from gi.repository import Flatpak, GLib
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("scope", choices=("user", "system", "seed"))
+    args = parser.parse_args()
+    if args.scope == "user":
+        lock_dir = Path(os.environ.get("XDG_CACHE_HOME", Path.home() / ".cache"))
+        installation = Flatpak.Installation.new_user(None)
+    else:
+        lock_dir = Path("/var/lib/bootc-gnome-flatpaks")
+        installation = Flatpak.Installation.new_system(None)
+    lock_dir.mkdir(parents=True, exist_ok=True)
+    with (lock_dir / "flathub.lock").open("a") as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX)
+        data = Path("/usr/share/bootc-gnome/flathub.flatpakrepo").read_bytes()
+        remotes = {remote.get_name(): remote for remote in installation.list_remotes(None)}
+        names = ("flathub",) if args.scope == "user" else ("flathub", "flathub-runtimes")
+        for name in names:
+            desired = Flatpak.Remote.new_from_file(name, GLib.Bytes.new(data))
+            desired.set_disabled(False)
+            desired.set_gpg_verify(True)
+            desired.set_nodeps(False)
+            desired.set_noenumerate(name == "flathub" and args.scope == "system")
+            definition = data
+            if name == "flathub-runtimes":
+                # Non-enumerated remotes cannot supply new runtime branches.
+                # This view of the same signed Flathub repo exposes runtimes
+                # only, keeping updates possible without a system app catalog.
+                filter_path = "/usr/share/bootc-gnome/flathub-runtimes.filter"
+                desired.set_filter(filter_path)
+                desired.set_title("Flathub (system runtimes)")
+                definition += Path(filter_path).read_bytes()
+            digest = hashlib.sha256(definition).hexdigest()
+            applied = lock_dir / f"{name}.definition"
+            current = remotes.get(name)
+            if (current is not None
+                    and current.get_url() == desired.get_url()
+                    and not current.get_disabled()
+                    and current.get_gpg_verify()
+                    and not current.get_nodeps()
+                    and current.get_noenumerate() == desired.get_noenumerate()
+                    and current.get_filter() == desired.get_filter()
+                    and applied.exists() and applied.read_text() == digest):
+                continue
+            if current is not None:
+                installation.modify_remote(desired, None)
+            else:
+                installation.add_remote(desired, False, None)
+            # A new image-carried key must be imported even when URL and flags
+            # are unchanged. Record only after committing the remote/key.
+            temporary = applied.with_suffix(".tmp")
+            temporary.write_text(digest)
+            temporary.replace(applied)
+
+
+if __name__ == "__main__":
+    main()

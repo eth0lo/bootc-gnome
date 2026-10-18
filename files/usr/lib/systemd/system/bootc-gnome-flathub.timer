@@ -1,0 +1,9 @@
+[Unit]
+Description=Maintain the system Flathub source
+
+[Timer]
+OnBootSec=2min
+OnUnitInactiveSec=2min
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,4 @@
+# Keep system runtime dependency discovery available without advertising any
+# system application installation candidates in Bazaar.
+deny *
+allow runtime/*

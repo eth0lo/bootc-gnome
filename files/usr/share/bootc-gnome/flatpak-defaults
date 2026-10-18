@@ -1,0 +1,3 @@
+# Stable Flathub application IDs, one per line. Keep delivery history when
+# removing an entry: an OS rollback must not reinstall a user-removed app.
+org.gnome.gitlab.somas.Apostrophe

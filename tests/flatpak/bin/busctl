@@ -1,0 +1,4 @@
+#!/usr/bin/bash
+# Container-only fixture: provide a known-unmetered NetworkManager response.
+# All Flatpak commands in check-provisioning.sh are real.
+printf 'u 2\n'

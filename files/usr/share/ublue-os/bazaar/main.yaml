@@ -1,0 +1,4 @@
+# Bazaar native RPM configuration. Keep policy local to this image rather than
+# inheriting Universal Blue's curated app recommendations or transaction hooks.
+yaml-blocklist-paths: []
+override-eol-markings: []

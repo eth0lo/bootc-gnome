@@ -1,0 +1,7 @@
+ARG BASE_IMAGE=localhost/bootc-gnome:bazaar
+FROM ${BASE_IMAGE}
+RUN dnf -y install xorg-x11-server-Xvfb xdotool dbus-daemon \
+    && dnf clean all \
+    && useradd --create-home --shell /bin/bash flatpak-test
+COPY --chmod=0755 tests/flatpak/check-desktop.sh /usr/local/bin/check-flatpak-desktop
+COPY --chmod=0755 tests/flatpak/run-desktop.sh /usr/local/bin/run-flatpak-desktop-test
