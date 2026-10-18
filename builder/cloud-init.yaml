@@ -1,0 +1,37 @@
+#cloud-config
+# First-boot setup for the Fedora builder VM. prepare-builder.sh inserts the
+# host's public SSH key in place of the placeholder below. The passwordless
+# sudo rule applies only to the builder account inside this VM.
+# Cloud-init installs the build tools and expands the root disk on first boot.
+users:
+  - name: builder
+    gecos: bootc-gnome disposable builder
+    groups: [wheel]
+    shell: /bin/bash
+    sudo: ['ALL=(ALL) NOPASSWD:ALL']
+    lock_passwd: true
+    ssh_authorized_keys:
+      - @@BUILDER_SSH_PUBLIC_KEY@@
+
+ssh_pwauth: false
+disable_root: true
+package_update: true
+packages:
+  - cloud-utils-growpart
+  - curl
+  - git
+  - openssh-clients
+  - podman
+  - qemu-img
+  - rsync
+  - sudo
+  - tar
+  - xz
+
+growpart:
+  mode: auto
+  devices: ['/']
+resize_rootfs: true
+
+runcmd:
+  - [systemctl, enable, --now, sshd.service]

@@ -1,4 +1,30 @@
 #!/usr/bin/env bash
+# Make an installer file for the desktop operating system.
+#
+# Start a VM or computer from this file to install the operating system there.
+# This is installation media; it is not a virtual-machine hard drive.
+#
+# Before running this script, build the operating-system image:
+#   ./scripts/build-image.sh
+#
+# Create an ISO from the default image:
+#   ./scripts/build-iso.sh
+#
+# If you gave the image a different name, use that same name here:
+#   ./scripts/build-image.sh localhost/bootc-gnome:test
+#   ./scripts/build-iso.sh localhost/bootc-gnome:test
+#
+# Or download the published stable image and make an installer from it:
+#   ./scripts/build-iso.sh ghcr.io/eth0lo/bootc-gnome:stable
+# Published images are downloaded automatically. An image whose name starts
+# with localhost/ must already have been built on this computer.
+#
+# DEFAULT IMAGE NAME: localhost/bootc-gnome:local
+#
+# OUTPUT: output/bootiso/install.iso
+#
+# NOTE: Running this script on your computer may ask for your sudo password.
+#       Running it inside the project's builder VM does not ask for a password.
 set -euo pipefail
 
 image="${1:-localhost/bootc-gnome:local}"

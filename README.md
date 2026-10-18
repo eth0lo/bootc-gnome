@@ -28,6 +28,36 @@ This builds `localhost/bootc-gnome:local` from the local Containerfile and refre
 ./scripts/build-image.sh localhost/bootc-gnome:test
 ```
 
+### Disposable builder VM
+
+For image-builder work without granting build privileges to the host, the
+repository includes scripts to prepare and run an official Fedora Cloud VM.
+Cloud-init installs the build tools, creates a passwordless-sudo `builder`
+account inside the guest, and authorizes a runtime SSH key. No password or
+private key is baked into the guest image.
+
+Build the VM disk, start it, then open an SSH session:
+
+```sh
+./scripts/prepare-builder.sh
+./scripts/start-builder.sh
+./scripts/builder-sync.sh
+./scripts/builder-exec.sh bash -lc 'cd ~/bootc-gnome && ./scripts/build-image.sh'
+```
+
+Rootful Podman and bootc-image-builder run inside the VM. On the host,
+`prepare-builder.sh` needs only `curl`, `qemu-img`, `xorriso`, `ssh-keygen`,
+Python 3, and KVM access; `start-builder.sh` additionally needs QEMU, OVMF,
+and OpenSSH. The VM uses QEMU user networking and exposes SSH only on host
+loopback port 2222; set `BUILDER_SSH_PORT` to choose another port. Use
+`scripts/builder-exec.sh COMMAND ...` for noninteractive commands,
+`scripts/builder-fetch.sh` to retrieve artifacts, and
+`scripts/stop-builder.sh` for graceful shutdown. The working disk, runtime
+key, seed, and logs live under ignored `output/builder/`. The guest's working
+disk persists between starts; `scripts/builder-sync.sh` copies the current
+checkout into the guest (excluding generated `output/` artifacts). See
+[`builder/README.md`](builder/README.md) for details.
+
 ### Test the container image in a VM
 
 Build a QCOW2 disk from the local image:
