@@ -1,43 +1,131 @@
 FROM quay.io/fedora/fedora-bootc:44
 
-# Expand gnome-desktop from the Fedora 44 comps snapshot recorded in
-# FEDORA-44-GROUPS.md. The group was deleted from the group install list and
-# its selected composition at expansion time was:
-# Mandatory: dconf, gdm, gnome-control-center, gnome-initial-setup,
-# gnome-session-wayland-session, gnome-settings-daemon, gnome-shell,
-# gnome-software, gnome-text-editor, nautilus, polkit, ptyxis, yelp.
-# Default: ModemManager, NetworkManager-adsl,
-# NetworkManager-openconnect-gnome, NetworkManager-openvpn-gnome,
-# NetworkManager-ppp, NetworkManager-ssh-gnome, NetworkManager-vpnc-gnome,
-# NetworkManager-wwan, PackageKit-command-not-found, PackageKit-gtk3-module,
-# adobe-source-code-pro-fonts, avahi, baobab, decibels, fprintd-pam,
-# glib-networking, glycin-thumbnailer, gnome-backgrounds, gnome-bluetooth,
-# gnome-boxes, gnome-browser-connector, gnome-calculator, gnome-calendar,
-# gnome-characters, gnome-classic-session, gnome-clocks, gnome-color-manager,
-# gnome-connections, gnome-contacts, gnome-disk-utility, gnome-epub-thumbnailer,
-# gnome-font-viewer, gnome-logs, gnome-maps, gnome-remote-desktop,
-# gnome-system-monitor, gnome-user-docs, gnome-user-share, gnome-weather,
-# gst-thumbnailers, gvfs-afc, gvfs-afp, gvfs-archive, gvfs-fuse, gvfs-goa,
-# gvfs-gphoto2, gvfs-mtp, gvfs-smb, librsvg2, libsane-hpaio, localsearch,
-# loupe, mesa-dri-drivers, mesa-libEGL, papers, papers-nautilus, rygel,
-# sane-backends-drivers-scanners, showtime, simple-scan, snapshot, sushi,
-# systemd-oomd-defaults, tinysparql, vte-profile, xdg-desktop-portal,
-# xdg-desktop-portal-gnome, xdg-desktop-portal-gtk, xdg-user-dirs-gtk.
-# Omitted: gnome-software, PackageKit-command-not-found,
-# PackageKit-gtk3-module. PackageKit-glib remains as simple-scan's client
-# library dependency; it is not the PackageKit system-update service.
+# FEDORA-44-GROUPS.md
 #
-# Expand multimedia from the same Fedora 44 comps snapshot. The group was
-# deleted from the group install list and contained these selected packages:
-# Mandatory: PackageKit-gstreamer-plugin, alsa-ucm, alsa-utils,
-# gstreamer1-plugin-dav1d, gstreamer1-plugin-libav,
-# gstreamer1-plugin-openh264, gstreamer1-plugins-bad-free,
-# gstreamer1-plugins-good, gstreamer1-plugins-ugly-free,
-# libva-intel-media-driver, pipewire-alsa, pipewire-config-raop,
-# pipewire-gstreamer, pipewire-pulseaudio, pipewire-utils, wireplumber.
-# Conditional: gstreamer-plugins-espeak (requires gstreamer; preserve the
-# condition below rather than installing it unconditionally).
-# Omitted: PackageKit-gstreamer-plugin.
+# Expand gnome-desktop from the same Fedora 44 comps snapshot.
+# The group was deleted from the group install list and contained these
+# selected packages:
+#
+# Mandatory:
+#   dconf,
+#   gdm,
+#   gnome-control-center,
+#   gnome-initial-setup,
+#   gnome-session-wayland-session,
+#   gnome-settings-daemon,
+#   gnome-shell,
+#   gnome-software,
+#   gnome-text-editor,
+#   nautilus,
+#   polkit,
+#   ptyxis,
+#   yelp.
+#
+# Default:
+#   ModemManager,
+#   NetworkManager-adsl,
+#   NetworkManager-openconnect-gnome,
+#   NetworkManager-openvpn-gnome,
+#   NetworkManager-ppp,
+#   NetworkManager-ssh-gnome,
+#   NetworkManager-vpnc-gnome,
+#   NetworkManager-wwan,
+#   PackageKit-command-not-found,
+#   PackageKit-gtk3-module,
+#   adobe-source-code-pro-fonts,
+#   avahi,
+#   baobab,
+#   decibels,
+#   fprintd-pam,
+#   glib-networking,
+#   glycin-thumbnailer,
+#   gnome-backgrounds,
+#   gnome-bluetooth,
+#   gnome-boxes,
+#   gnome-browser-connector,
+#   gnome-calculator,
+#   gnome-calendar,
+#   gnome-characters,
+#   gnome-classic-session,
+#   gnome-clocks,
+#   gnome-color-manager,
+#   gnome-connections,
+#   gnome-contacts,
+#   gnome-disk-utility,
+#   gnome-epub-thumbnailer,
+#   gnome-font-viewer,
+#   gnome-logs,
+#   gnome-maps,
+#   gnome-remote-desktop,
+#   gnome-system-monitor,
+#   gnome-user-docs,
+#   gnome-user-share,
+#   gnome-weather,
+#   gst-thumbnailers,
+#   gvfs-afc,
+#   gvfs-afp,
+#   gvfs-archive,
+#   gvfs-fuse,
+#   gvfs-goa,
+#   gvfs-gphoto2,
+#   gvfs-mtp,
+#   gvfs-smb,
+#   librsvg2,
+#   libsane-hpaio,
+#   localsearch,
+#   loupe,
+#   mesa-dri-drivers,
+#   mesa-libEGL,
+#   papers,
+#   papers-nautilus,
+#   rygel,
+#   sane-backends-drivers-scanners,
+#   showtime,
+#   simple-scan,
+#   snapshot,
+#   sushi,
+#   systemd-oomd-defaults,
+#   tinysparql,
+#   vte-profile,
+#   xdg-desktop-portal,
+#   xdg-desktop-portal-gnome,
+#   xdg-desktop-portal-gtk,
+#   xdg-user-dirs-gtk.
+#
+# Omitted:
+#   gnome-software and its PackageKit UI plugins
+#   PackageKit-command-not-found and PackageKit-gtk3-module.
+#   PackageKit-glib remains a dependency of simple-scan; it is a client library,
+#   not the PackageKit system-update service.
+#
+# Expand multimedia from the same Fedora 44 comps snapshot.
+# The group was deleted from the group install list and contained these
+# selected packages:
+#
+# Mandatory:
+#   PackageKit-gstreamer-plugin,
+#   alsa-ucm,
+#   alsa-utils,
+#   gstreamer1-plugin-dav1d,
+#   gstreamer1-plugin-libav,
+#   gstreamer1-plugin-openh264,
+#   gstreamer1-plugins-bad-free,
+#   gstreamer1-plugins-good,
+#   gstreamer1-plugins-ugly-free,
+#   libva-intel-media-driver,
+#   pipewire-alsa,
+#   pipewire-config-raop,
+#   pipewire-gstreamer,
+#   pipewire-pulseaudio,
+#   pipewire-utils,
+#   wireplumber.
+#
+# Conditional:
+#   gstreamer-plugins-espeak
+#       (requires gstreamer; retain the condition below rather than installing it unconditionally).
+#
+# Omitted:
+#   PackageKit-gstreamer-plugin.
 RUN dnf -y --setopt=exclude_from_weak=PackageKit group install \
         # core group starts
         core \
